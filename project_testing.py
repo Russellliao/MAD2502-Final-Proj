@@ -76,6 +76,29 @@ def plot_spectrum(xf, spectrum, note=None, label='Channel'):
     plt.tight_layout()
     plt.show()
 
-sample_rate, left, right = read_audio('rock-and-roll-01-325493.mp3')
+#sample_rate, left, right = read_audio('rock-and-roll-01-325493.mp3')
+
+
+filenames = [
+    'rock-and-roll.mp3',
+    'edm.mp3',
+    'twisterion-b1-221376.mp3',
+    'oasis.mp3'
+]
+
+# Loop through each file and process it
+for file in filenames:
+    print(f"\n--- Processing: {file} ---")
+    sample_rate, left, right = read_audio(file)
+    xf, yf, spectrum, N = compute_fft(left, sample_rate)
+
+    # Get index of the dominant frequency (highest amplitude)
+    dominant_idx = np.argmax(spectrum)
+    dominant_freq = xf[dominant_idx]
+    dominant_note = freq_to_note(dominant_freq)
+
+    # Plot the spectrum
+    plot_spectrum(xf, spectrum, note=dominant_note, label=file)
+
 
 
