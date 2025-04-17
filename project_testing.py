@@ -77,10 +77,12 @@ def plot_spectrum(xf, spectrum, note=None, label='Channel'):
         plt.title("Frequency Spectrum")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Amplitude")
+    plt.xlim(0, 500)
     plt.grid()
     plt.legend()
     plt.tight_layout()
     plt.show()
+
 
 #sample_rate, left, right = read_audio('rock-and-roll-01-325493.mp3')
 
