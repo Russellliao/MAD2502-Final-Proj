@@ -27,7 +27,7 @@ def read_audio(filename):
         left, right = data, None
     return sample_rate, left, right
 
-# 2. Compute FFT and frequency bins
+# 2. Fourier Transformation
 def compute_fft(signal, sample_rate):
     N = len(signal)
     T = 1.0 / sample_rate
@@ -47,13 +47,13 @@ def freq_to_note(freq):
     octave = 4 + ((n + 9) // 12)
     return f"{notes[note_index]}{octave}"
 
-# --- Pitch detection ---
+# 4. Main Pitch detection
 peak_idx = np.argmax(spectrum)
 peak_freq = xf[peak_idx]
 note = freq_to_note(peak_freq)
 print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
 
-# 4. Filters
+# 5. Filters
 def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
     yf_filtered = yf.copy()
     freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate))
@@ -68,7 +68,7 @@ def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
 
     return yf_filtered
 
-# 5. Visualization
+# 6. Visualization
 def plot_spectrum(xf, spectrum, note=None, label='Channel'):
     plt.plot(xf, spectrum, label=label)
     if note:
