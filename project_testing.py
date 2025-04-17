@@ -47,6 +47,12 @@ def freq_to_note(freq):
     octave = 4 + ((n + 9) // 12)
     return f"{notes[note_index]}{octave}"
 
+# --- Pitch detection ---
+peak_idx = np.argmax(spectrum)
+peak_freq = xf[peak_idx]
+note = freq_to_note(peak_freq)
+print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
+
 # 4. Filters
 def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
     yf_filtered = yf.copy()
