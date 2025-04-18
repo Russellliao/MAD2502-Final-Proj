@@ -16,10 +16,10 @@ import soundfile as sf
 
 
 # 1. Read audio file and check if there is stereo
-def read_audio(filename):
+def read_audio(filename): #Import the audio file into python and compare the data in left and right channel; if they are different, there is stereo audio
     data, sample_rate = sf.read(filename)
-    print(f"Sample rate: {sample_rate} Hz")
-    if data.ndim == 2:
+    print(f"Sample rate: {sample_rate} Hz") #usually 44.1kHz or 48kHz
+    if data.ndim == 2: 
         print("Stereo audio detected.")
         left, right = data[:, 0], data[:, 1]
     else:
@@ -28,23 +28,25 @@ def read_audio(filename):
     return sample_rate, left, right
 
 # 2. Fourier Transformation
-def compute_fft(signal, sample_rate):
-    N = len(signal)
-    T = 1.0 / sample_rate
-    yf = fft(signal)
-    xf = np.fft.fftfreq(N, T)[:N//2]
-    spectrum = np.abs(yf[:N//2])
+def compute_fft(signal, sample_rate): #transform the signals which are audio amplitudes into frequencies
+    N = len(signal) #The higher N, the more detailed signal
+    T = 1.0 / sample_rate #time interval between samples
+    yf = fft(signal) #fast fourier transform, yf means how much each frequency has in the signal
+    #xf = np.fft.fftfreq(N, T)[:N//2]
+    xf = np.fft.fftfreq(N, T)[:] #frequency values in Hz
+    #spectrum = np.abs(yf[:N//2])
+    spectrum = np.abs(yf[:]) #amplitude of each frequency
     return xf, yf, spectrum, N
 
 # 3. Convert frequency to musical note
 def freq_to_note(freq):
     if freq <= 0:
         return "N/A"
-    A4 = 440.0
-    notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    n = round(12 * np.log2(freq / A4))
+    A4 = 440.0 #reference pitch
+    notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] #12 semitones in an octave
+    n = round(12 * np.log2(freq / A4)) #how many semitones is the frequency away from A4
     note_index = (n + 9) % 12
-    octave = 4 + ((n + 9) // 12)
+    octave = 4 + ((n + 9) // 12) #octave number
     return f"{notes[note_index]}{octave}"
 
 # 4. Main Pitch detection
