@@ -72,8 +72,11 @@ def freq_to_note(freq):
     octave = 4 + ((n + 9) // 12) #octave number
     return f"{notes[note_index]}{octave}"
 
-"""
-    Applies low-pass and/or high-pass filters to an FFT-transformed signal.
+
+def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
+    """
+    Applies a low-pass or high-pass filters to the audio signal to eliminate overly high or overly low frequencies. 
+    The user can set the low_pass and high_pass values to output the audio in the way they want.
 
     Params:
         yf (ndarray): FFT-transformed signal.
@@ -85,9 +88,6 @@ def freq_to_note(freq):
     Return:
         ndarray: The filtered FFT result.
     """
-def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
-    "Applies a filter to the audio signal to eliminate overly high or overly low frequencies. The user can set the low_pass 
-    "and high_pass values to output the audio in the way they want."
     yf_filtered = yf.copy() # A copy is made so that the original audio is not changed
     freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate)) # Takes the absolute value of the frequencies 
 
