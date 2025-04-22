@@ -5,15 +5,6 @@ from scipy.fft import fft, ifft
 import soundfile as sf
 
 
-# data, sample_rate = sf.read('rock-and-roll-01-325493.mp3')
-# print('File loaded successfully')
-# print('Shape:', data.shape)
-# print('Sample rate:', sample_rate)
-    #except sf.SoundFileError as e:
-         #print(f"Error reading the file: {e}")
-    #except RuntimeError as re:
-        #print(f"Another error occurred: {re}")
-
 #1. Read audio file
 """
     Reads an audio file and checks whether there is stereo or mono
@@ -81,13 +72,6 @@ def freq_to_note(freq):
     octave = 4 + ((n + 9) // 12) #octave number
     return f"{notes[note_index]}{octave}"
 
-# # 4. Main Pitch detection
-# peak_idx = np.argmax(spectrum)
-# peak_freq = xf[peak_idx]
-# note = freq_to_note(peak_freq)
-# print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
-
-# 5. Filters
 """
     Applies low-pass and/or high-pass filters to an FFT-transformed signal.
 
@@ -142,7 +126,6 @@ def plot_spectrum(xf, spectrum, note=None, label='Channel'):
     plt.show()
 
 
-#sample_rate, left, right = read_audio('rock-and-roll-01-325493.mp3')
 
 
 filenames = [
@@ -168,5 +151,6 @@ for file in filenames:
     # Plot the spectrum
     plot_spectrum(xf, spectrum, note=dominant_note, label=file)
     plot_spectrum(xf, filtered_spectrum, note=dominant_note, label=file)
+
 
 
