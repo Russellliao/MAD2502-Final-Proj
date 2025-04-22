@@ -86,18 +86,20 @@ def freq_to_note(freq):
         ndarray: The filtered FFT result.
     """
 def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
-    yf_filtered = yf.copy()
-    freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate))
+    "Applies a filter to the audio signal to eliminate overly high or overly low frequencies. The user can set the low_pass 
+    "and high_pass values to output the audio in the way they want."
+    yf_filtered = yf.copy() # A copy is made so that the original audio is not changed
+    freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate)) # Takes the absolute value of the frequencies 
 
-    if low_pass is not None:
+    if low_pass is not None: 
         print(f"Applying Low-Pass Filter @ {low_pass} Hz")
-        yf_filtered[freqs > low_pass] = 0
+        yf_filtered[freqs > low_pass] = 0 # Any value above the low pass will be set to 0
 
     if high_pass is not None:
         print(f"Applying High-Pass Filter @ {high_pass} Hz")
-        yf_filtered[freqs < high_pass] = 0
+        yf_filtered[freqs < high_pass] = 0 # Any frequency below the high pass is also set to 0
 
-    filtered_signal = np.real(ifft(yf_filtered))
+    filtered_signal = np.real(ifft(yf_filtered)) # Converts the signals back using inverse fft and takes only the real parts
     return yf_filtered,filtered_signal
 
 
