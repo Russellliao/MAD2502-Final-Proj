@@ -159,3 +159,20 @@ for file in filenames:
 
 
 
+# 1. Generate a fake signal (or use an audio file)
+sample_rate = 44100
+t = np.linspace(0, 1.0, sample_rate)
+signal = np.sin(2 * np.pi * 440 * t) + 0.5 * np.sin(2 * np.pi * 2000 * t)  # 440Hz + 2kHz
+
+# 2. Get the FFT
+yf = fft(signal)
+N = len(signal)
+
+# 3. Apply the filter
+# Example: Keep everything between 300Hz and 1500Hz
+yf_filtered = apply_filter(yf, sample_rate, N, low_pass=1500, high_pass=300)
+
+# 4. Convert back to time-domain
+filtered_signal = np.real(ifft(yf_filtered))
+
+
