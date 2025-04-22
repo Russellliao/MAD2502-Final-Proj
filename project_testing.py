@@ -15,7 +15,8 @@ import soundfile as sf
         #print(f"Another error occurred: {re}")
 
 #1. Read audio file
- """
+def read_audio(filename): #Import the audio file into python and compare the data in left and right channel; if they are different, there is stereo audio
+    """
     Reads an audio file and checks whether there is stereo or mono
 
     Params:
@@ -23,8 +24,7 @@ import soundfile as sf
 
     Return:
         tuple: sample_rate, left_channel, right_channel or None
-"""
-def read_audio(filename): #Import the audio file into python and compare the data in left and right channel; if they are different, there is stereo audio
+    """
     data, sample_rate = sf.read(filename)
     print(f"Sample rate: {sample_rate} Hz") #usually 44.1kHz or 48kHz
     if data.ndim == 2: 
@@ -35,7 +35,8 @@ def read_audio(filename): #Import the audio file into python and compare the dat
         left, right = data, None
     return sample_rate, left, right
 
-"""
+def compute_fft(signal, sample_rate): #transform the signals which are audio amplitudes into frequencies
+    """
     Computes the Fast Fourier Transformation of an audio signal.
 
     Params:
@@ -44,8 +45,7 @@ def read_audio(filename): #Import the audio file into python and compare the dat
 
     Return:
         tuple: xf, yf, specturm, N
-"""
-def compute_fft(signal, sample_rate): #transform the signals which are audio amplitudes into frequencies
+    """
     N = len(signal) #The higher N, the more detailed signal
     T = 1.0 / sample_rate #time interval between samples
     yf = fft(signal) #fast fourier transform, yf means how much each frequency has in the signal
@@ -55,7 +55,8 @@ def compute_fft(signal, sample_rate): #transform the signals which are audio amp
     spectrum = np.abs(yf[:]) #amplitude of each frequency
     return xf, yf, spectrum, N
 
-"""
+def freq_to_note(freq):
+    """
     Converts a frequency in Hz to the nearest musical note.
 
     Params:
@@ -64,7 +65,6 @@ def compute_fft(signal, sample_rate): #transform the signals which are audio amp
     Return:
         str: The musical note corresponding to the frequency
     """
-def freq_to_note(freq):
     if freq <= 0:
         return "N/A"
     A4 = 440.0 #reference pitch
@@ -81,7 +81,8 @@ note = freq_to_note(peak_freq)
 print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
 
 # 5. Filters
- """
+def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
+    """
     Applies low-pass and/or high-pass filters to an FFT-transformed signal.
 
     Params:
@@ -94,7 +95,6 @@ print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
     Return:
         ndarray: The filtered FFT result.
     """
-def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
     yf_filtered = yf.copy()
     freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate))
 
