@@ -15,8 +15,7 @@ import soundfile as sf
         #print(f"Another error occurred: {re}")
 
 #1. Read audio file
-def read_audio(filename): #Import the audio file into python and compare the data in left and right channel; if they are different, there is stereo audio
-    """
+"""
     Reads an audio file and checks whether there is stereo or mono
 
     Params:
@@ -24,10 +23,11 @@ def read_audio(filename): #Import the audio file into python and compare the dat
 
     Return:
         tuple: sample_rate, left_channel, right_channel or None
-    """
+        """
+def read_audio(filename): #Import the audio file into python and compare the data in left and right channel; if they are different, there is stereo audio
     data, sample_rate = sf.read(filename)
     print(f"Sample rate: {sample_rate} Hz") #usually 44.1kHz or 48kHz
-    if data.ndim == 2: 
+    if data.ndim == 2:
         print("Stereo audio detected.")
         left, right = data[:, 0], data[:, 1]
     else:
@@ -35,8 +35,14 @@ def read_audio(filename): #Import the audio file into python and compare the dat
         left, right = data, None
     return sample_rate, left, right
 
-def compute_fft(signal, sample_rate): #transform the signals which are audio amplitudes into frequencies
-    """
+# 4. Main Pitch detection
+    peak_idx = np.argmax(spectrum)
+    peak_freq = xf[peak_idx]
+    note = freq_to_note(peak_freq)
+    print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
+
+
+"""
     Computes the Fast Fourier Transformation of an audio signal.
 
     Params:
@@ -45,18 +51,18 @@ def compute_fft(signal, sample_rate): #transform the signals which are audio amp
 
     Return:
         tuple: xf, yf, specturm, N
-    """
+"""
+def compute_fft(signal, sample_rate): #transform the signals which are audio amplitudes into frequencies
     N = len(signal) #The higher N, the more detailed signal
     T = 1.0 / sample_rate #time interval between samples
     yf = fft(signal) #fast fourier transform, yf means how much each frequency has in the signal
     #xf = np.fft.fftfreq(N, T)[:N//2]
     xf = np.fft.fftfreq(N, T)[:] #frequency values in Hz
     #spectrum = np.abs(yf[:N//2])
-    spectrum = np.abs(yf[:]) #amplitude of each frequency
+    spectrum = yf #amplitude of each frequency
     return xf, yf, spectrum, N
 
-def freq_to_note(freq):
-    """
+"""
     Converts a frequency in Hz to the nearest musical note.
 
     Params:
@@ -65,24 +71,24 @@ def freq_to_note(freq):
     Return:
         str: The musical note corresponding to the frequency
     """
+def freq_to_note(freq):
     if freq <= 0:
-        return "N/A"
+        return "frequency less than 0"
     A4 = 440.0 #reference pitch
     notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] #12 semitones in an octave
-    n = round(12 * np.log2(freq / A4)) #how many semitones is the frequency away from A4
+    n = round(12 * np.abs(np.log2(freq / A4))) #how many semitones is the frequency away from A4
     note_index = (n + 9) % 12
     octave = 4 + ((n + 9) // 12) #octave number
     return f"{notes[note_index]}{octave}"
 
-# 4. Main Pitch detection
-peak_idx = np.argmax(spectrum)
-peak_freq = xf[peak_idx]
-note = freq_to_note(peak_freq)
-print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
+# # 4. Main Pitch detection
+# peak_idx = np.argmax(spectrum)
+# peak_freq = xf[peak_idx]
+# note = freq_to_note(peak_freq)
+# print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
 
 # 5. Filters
-def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
-    """
+"""
     Applies low-pass and/or high-pass filters to an FFT-transformed signal.
 
     Params:
@@ -95,18 +101,21 @@ def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
     Return:
         ndarray: The filtered FFT result.
     """
+def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
     yf_filtered = yf.copy()
     freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate))
 
-    if low_pass:
+    if low_pass is not None:
         print(f"Applying Low-Pass Filter @ {low_pass} Hz")
         yf_filtered[freqs > low_pass] = 0
 
-    if high_pass:
+    if high_pass is not None:
         print(f"Applying High-Pass Filter @ {high_pass} Hz")
         yf_filtered[freqs < high_pass] = 0
 
-    return yf_filtered
+    filtered_signal = np.real(ifft(yf_filtered))
+    return yf_filtered,filtered_signal
+
 
 # 6. Visualization
 def plot_spectrum(xf, spectrum, note=None, label='Channel'):
@@ -154,25 +163,10 @@ for file in filenames:
     dominant_freq = xf[dominant_idx]
     dominant_note = freq_to_note(dominant_freq)
 
+    filtered_yf, filtered_signal = apply_filter(yf, sample_rate, N, low_pass=20000, high_pass=300)
+    filtered_spectrum=np.abs(filtered_yf)
     # Plot the spectrum
     plot_spectrum(xf, spectrum, note=dominant_note, label=file)
-
-
-
-# 1. Generate a fake signal (or use an audio file)
-sample_rate = 44100
-t = np.linspace(0, 1.0, sample_rate)
-signal = np.sin(2 * np.pi * 440 * t) + 0.5 * np.sin(2 * np.pi * 2000 * t)  # 440Hz + 2kHz
-
-# 2. Get the FFT
-yf = fft(signal)
-N = len(signal)
-
-# 3. Apply the filter
-# Example: Keep everything between 300Hz and 1500Hz
-yf_filtered = apply_filter(yf, sample_rate, N, low_pass=1500, high_pass=300)
-
-# 4. Convert back to time-domain
-filtered_signal = np.real(ifft(yf_filtered))
+    plot_spectrum(xf, filtered_spectrum, note=dominant_note, label=file)
 
 
