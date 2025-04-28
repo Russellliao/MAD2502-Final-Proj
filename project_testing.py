@@ -127,6 +127,97 @@ def plot_spectrum(xf, spectrum, note=None, label='Channel'):
     plt.tight_layout()
     plt.show()
 
+def save_audio(signal, sample_rate, filename):
+    """Saves the audio signal to a WAV file"""
+    sf.write(filename, signal, sample_rate)
+    print(f"Audio saved as {filename}")
+
+def display_menu():
+    """Displays the main menu options"""
+    print("\n     Audio Editor     ")
+    print("Please choose one of the following options: ")
+    print("1. Analyze audio file")
+    print("2. Apply filters")
+    print("3. Plot spectrum")
+    print("4. Save modified audio")
+    print("5. Exit")
+    return input("Enter your choice (1-5): ")
+
+def main():
+    audio_data = None
+    sample_rate = None
+    xf = yf = spectrum = N = None
+    filtered_yf = filtered_signal = None
+
+    while True:
+        choice = display_menu()
+        if choice == '1':
+            filename = input("Enter audio file path: ")
+            try:
+                sample_rate, left, right = read_audio(filename)
+                audio_data = left 
+                xf, yf, spectrum, N = compute_fft(audio_data, sample_rate)
+                dominant_idx = np.argmax(np.abs(spectrum))
+                dominant_freq = abs(xf[dominant_idx])
+                dominant_note = freq_to_note(dominant_freq)
+                print(f"Dominant Frequency: {dominant_freq:.2f} Hz Note: {dominant_note}")
+                
+            except Exception:
+                print("Error occurred. Please try again.")
+        
+        elif choice == '2':
+            if audio_data is None:
+                print("Please load an audio file first.")
+                continue
+            low_pass = input("Enter low-pass cutoff (in Hz) or hit enter: ")
+            high_pass = input("Enter high-pass cutoff (in Hz) or hit enter: ")
+            try:
+                low_pass = float(low_pass) if low_pass else None
+                high_pass = float(high_pass) if high_pass else None
+                filtered_yf, filtered_signal = apply_filter(yf, sample_rate, N, 
+                low_pass=low_pass, high_pass=high_pass)
+                print("Filters have been applied.")     
+            except ValueError:
+                print("Please enter valid cutoff values.")
+        
+        elif choice == '3':
+            if audio_data is None:
+                print("Please load an audio file first.")
+                continue
+                
+            plot_type = input("Please select the type of plot.(1) Original audio, (2) Filtered audio, or (3) Both audios? ")
+            dominant_idx = np.argmax(np.abs(spectrum))
+            dominant_freq = abs(xf[dominant_idx])
+            dominant_note = freq_to_note(dominant_freq)
+            
+            if plot_type == '1':
+                plot_spectrum(xf, np.abs(spectrum), note=dominant_note, label='Original')
+            elif plot_type == '2' and filtered_yf is not None:
+                plot_spectrum(xf, np.abs(filtered_yf), note=dominant_note, label='Filtered')
+            elif plot_type == '3' and filtered_yf is not None:
+                plt.figure(figsize=(10, 5))
+                plot_spectrum(xf, np.abs(spectrum), note=dominant_note, label='Original')
+                plot_spectrum(xf, np.abs(filtered_yf), note=dominant_note, label='Filtered')
+            else:
+                print("Error: Invalid choice")
+        
+        elif choice == '4':
+            if filtered_signal is None:
+                print("No filtered audio to save.")
+                continue 
+            filename = input("Enter output filename (e.g., filtered_audio.wav): ")
+            try:
+                save_audio(filtered_signal, sample_rate, filename)
+            except Exception:
+                print(f"Error saving file.")
+        
+        elif choice == '5':
+            print("Ending program...")
+            break
+            
+        else:
+            print("Invalid choice. Please enter a number between 1-5.")
+
 
 
 
