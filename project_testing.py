@@ -125,7 +125,8 @@ def plot_spectrum(xf, spectrum, note=None, label='Channel'):
     plt.grid()
     plt.legend()
     plt.tight_layout()
-    plt.show()
+    plt.show(block=False)
+    plt.pause(0.1)
 
 def save_audio(signal, sample_rate, filename):
     """Saves the audio signal to a WAV file"""
@@ -198,6 +199,9 @@ def main():
                 plt.figure(figsize=(10, 5))
                 plot_spectrum(xf, np.abs(spectrum), note=dominant_note, label='Original')
                 plot_spectrum(xf, np.abs(filtered_yf), note=dominant_note, label='Filtered')
+
+            input("Press Enter to continue...")
+            plt.close('all')
             else:
                 print("Error: Invalid choice")
         
