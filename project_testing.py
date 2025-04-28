@@ -26,12 +26,6 @@ def read_audio(filename): #Import the audio file into python and compare the dat
         left, right = data, None
     return sample_rate, left, right
 
-# 4. Main Pitch detection
-    peak_idx = np.argmax(spectrum)
-    peak_freq = xf[peak_idx]
-    note = freq_to_note(peak_freq)
-    print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
-
 
 """
     Computes the Fast Fourier Transformation of an audio signal.
@@ -72,10 +66,16 @@ def freq_to_note(freq):
     octave = 4 + ((n + 9) // 12) #octave number
     return f"{notes[note_index]}{octave}"
 
+    peak_idx = np.argmax(spectrum)
+    peak_freq = xf[peak_idx]
+    note = freq_to_note(peak_freq)
+    print(f"Dominant Frequency: {peak_freq:.2f} Hz → Note: {note}")
+
+
 
 def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
     """
-    Applies a low-pass or high-pass filters to the audio signal to eliminate overly high or overly low frequencies. 
+    Applies a low-pass or high-pass filters to the audio signal to eliminate overly high or overly low frequencies.
     The user can set the low_pass and high_pass values to output the audio in the way they want.
 
     Params:
@@ -89,9 +89,9 @@ def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
         ndarray: The filtered FFT result.
     """
     yf_filtered = yf.copy() # A copy is made so that the original audio is not changed
-    freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate)) # Takes the absolute value of the frequencies 
+    freqs = np.abs(np.fft.fftfreq(N, 1.0 / sample_rate)) # Takes the absolute value of the frequencies
 
-    if low_pass is not None: 
+    if low_pass is not None:
         print(f"Applying Low-Pass Filter @ {low_pass} Hz")
         yf_filtered[freqs > low_pass] = 0 # Any value above the low pass will be set to 0
 
@@ -104,7 +104,7 @@ def apply_filter(yf, sample_rate, N, low_pass=None, high_pass=None):
 
 
 # 6. Visualization
-def plot_spectrum(xf, spectrum, note=None, label='Channel'):
+def plot_spectrum(xf, spectrum, note=None, label='Channel', color= "blue"):
     """
     Plots the frequency spectrum of the audio
 
@@ -114,19 +114,33 @@ def plot_spectrum(xf, spectrum, note=None, label='Channel'):
         note (str, optional): Dominant musical note to display in title.
         label (str): Label for the plot legend.
     """
-    plt.plot(xf, spectrum, label=label)
+    plt.plot(xf, spectrum, label=label, color = color)
     if note:
         plt.title(f"Frequency Spectrum (Dominant Note: {note})")
+        #plt.title("Frequency Spectrum")
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Amplitude")
+        plt.xlim(0, 500)
+        plt.grid()
+        plt.legend()
+        plt.tight_layout()
+        plt.show(block=False)
+        plt.pause(0.1)
+        input("Press Enter to continue...")
+        plt.close('all')
+
     else:
         plt.title("Frequency Spectrum")
-    plt.xlabel("Frequency (Hz)")
-    plt.ylabel("Amplitude")
-    plt.xlim(0, 500)
-    plt.grid()
-    plt.legend()
-    plt.tight_layout()
-    plt.show(block=False)
-    plt.pause(0.1)
+        plt.xlabel("Frequency (Hz)")
+        plt.ylabel("Amplitude")
+        plt.xlim(0, 500)
+        plt.grid()
+        plt.legend()
+        plt.tight_layout()
+        plt.show(block=False)
+        plt.pause(0.1)
+        input("Press Enter to continue...")
+        plt.close('all')
 
 def save_audio(signal, sample_rate, filename):
     """Saves the audio signal to a WAV file"""
@@ -150,22 +164,25 @@ def main():
     xf = yf = spectrum = N = None
     filtered_yf = filtered_signal = None
 
+
+
     while True:
         choice = display_menu()
+
         if choice == '1':
             filename = input("Enter audio file path: ")
             try:
                 sample_rate, left, right = read_audio(filename)
-                audio_data = left 
+                audio_data = left
                 xf, yf, spectrum, N = compute_fft(audio_data, sample_rate)
                 dominant_idx = np.argmax(np.abs(spectrum))
                 dominant_freq = abs(xf[dominant_idx])
                 dominant_note = freq_to_note(dominant_freq)
                 print(f"Dominant Frequency: {dominant_freq:.2f} Hz Note: {dominant_note}")
-                
+
             except Exception:
                 print("Error occurred. Please try again.")
-        
+
         elif choice == '2':
             if audio_data is None:
                 print("Please load an audio file first.")
@@ -175,54 +192,63 @@ def main():
             try:
                 low_pass = float(low_pass) if low_pass else None
                 high_pass = float(high_pass) if high_pass else None
-                filtered_yf, filtered_signal = apply_filter(yf, sample_rate, N, 
+                filtered_yf, filtered_signal = apply_filter(yf, sample_rate, N,
                 low_pass=low_pass, high_pass=high_pass)
-                print("Filters have been applied.")     
+                print("Filters have been applied.")
             except ValueError:
                 print("Please enter valid cutoff values.")
-        
+
         elif choice == '3':
             if audio_data is None:
                 print("Please load an audio file first.")
                 continue
-                
+
             plot_type = input("Please select the type of plot.(1) Original audio, (2) Filtered audio, or (3) Both audios? ")
             dominant_idx = np.argmax(np.abs(spectrum))
             dominant_freq = abs(xf[dominant_idx])
             dominant_note = freq_to_note(dominant_freq)
-            
+
             if plot_type == '1':
                 plot_spectrum(xf, np.abs(spectrum), note=dominant_note, label='Original')
             elif plot_type == '2' and filtered_yf is not None:
                 plot_spectrum(xf, np.abs(filtered_yf), note=dominant_note, label='Filtered')
             elif plot_type == '3' and filtered_yf is not None:
-                plt.figure(figsize=(10, 5))
-                plot_spectrum(xf, np.abs(spectrum), note=dominant_note, label='Original')
-                plot_spectrum(xf, np.abs(filtered_yf), note=dominant_note, label='Filtered')
 
-            input("Press Enter to continue...")
-            plt.close('all')
-            else:
-                print("Error: Invalid choice")
+                plt.figure(figsize=(10, 5))
+                plt.plot(xf, np.abs(spectrum), label='Original')  # Original (default color)
+                plt.plot(xf, np.abs(filtered_yf), label='Filtered', color='red')  # Filtered (red)
+                plt.title(f"Frequency Spectrum (Dominant Note: {dominant_note})")
+                plt.xlabel("Frequency (Hz)")
+                plt.ylabel("Amplitude")
+                plt.xlim(0, 500)
+                plt.grid()
+                plt.legend()
+                plt.tight_layout()
+                plt.show(block=False)
+                plt.pause(0.1)
+                input("Press Enter to continue...")
+                plt.close('all')
         
+
         elif choice == '4':
             if filtered_signal is None:
                 print("No filtered audio to save.")
-                continue 
+                continue
             filename = input("Enter output filename (e.g., filtered_audio.wav): ")
             try:
                 save_audio(filtered_signal, sample_rate, filename)
             except Exception:
                 print(f"Error saving file.")
-        
+
         elif choice == '5':
             print("Ending program...")
             break
-            
+
         else:
             print("Invalid choice. Please enter a number between 1-5.")
 
-
+if __name__ == '__main__':
+    main()
 
 
 filenames = [
@@ -231,23 +257,4 @@ filenames = [
     'twisterion-b1-221376.mp3',
     'oasis.mp3'
 ]
-
-# Loop through each file and process it
-for file in filenames:
-    print(f"\n--- Processing: {file} ---")
-    sample_rate, left, right = read_audio(file)
-    xf, yf, spectrum, N = compute_fft(left, sample_rate)
-
-    # Get index of the dominant frequency (highest amplitude)
-    dominant_idx = np.argmax(spectrum)
-    dominant_freq = xf[dominant_idx]
-    dominant_note = freq_to_note(dominant_freq)
-
-    filtered_yf, filtered_signal = apply_filter(yf, sample_rate, N, low_pass=20000, high_pass=300)
-    filtered_spectrum=np.abs(filtered_yf)
-    # Plot the spectrum
-    plot_spectrum(xf, spectrum, note=dominant_note, label=file)
-    plot_spectrum(xf, filtered_spectrum, note=dominant_note, label=file)
-
-
 
